@@ -57,6 +57,21 @@ async function setupDatabase() {
             );
         }
         console.log("Employees inserted successfully.");
+        const holidays = [
+            ["2026-07-10", "Heroes Day"],
+            ["2026-07-22", "Unity Day"],
+            ["2026-08-01", "National Day"],
+            ["2026-08-11", "Defense Forces Day"],
+            ["2026-08-25", "Labour Day"]
+        ];
+
+        for (const holiday of holidays) {
+            await db.run(
+                `INSERT INTO public_holidays (holiday_date, holiday_name)
+         VALUES (?, ?)`,
+                holiday
+            );
+        }
 
 
         console.log("Database setup completed!");
