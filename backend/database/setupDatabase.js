@@ -19,7 +19,13 @@ async function setupDatabase() {
         FOREIGN KEY (employee_id) REFERENCES employees(id)
     )
 `);
-
+    await db.exec(`
+    CREATE TABLE IF NOT EXISTS public_holidays (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        holiday_date TEXT NOT NULL,
+        holiday_name TEXT NOT NULL
+    )
+`);
     console.log("Employees table created");
 }
 
