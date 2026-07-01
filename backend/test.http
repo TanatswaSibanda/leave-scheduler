@@ -1,0 +1,8 @@
+POST http://localhost:2000/leave-requests
+Content-Type: application/json
+
+{
+  "employee_id": 2,
+  "start_date": "2026-07-20",
+  "end_date": "2026-07-22"
+}

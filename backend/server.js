@@ -41,6 +41,22 @@ app.post("/leave-requests", async (req, res) => {
     }
 });
 
+app.get("/leave-requests", async (req, res) => {
+    try {
+        const db = await connectDB();
+
+        const requests = await db.all(`
+            SELECT * FROM leave_requests
+        `);
+
+        await db.close();
+
+        res.json(requests);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 const PORT = 2000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
