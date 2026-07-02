@@ -77,18 +77,10 @@ async function setupDatabase() {
             [2, "2026-07-11", "2026-07-13", "approved"],
             [3, "2026-07-15", "2026-07-16", "pending"],
             [4, "2026-07-20", "2026-07-22", "rejected"],
-            [5, "2026-07-25", "2026-07-28", "approved"]
+            [5, "2026-07-25", "2026-07-28", "approved"],
         ];
 
-        for (const request of leaveRequests) {
-            await db.run(
-                `INSERT INTO leave_requests (employee_id, start_date, end_date, status)
-         VALUES (?, ?, ?, ?)`,
-                request
-            );
-        }
 
-        console.log("Leave requests seeded.");
 
 
         console.log("Database setup completed!");

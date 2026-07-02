@@ -35,6 +35,7 @@ function App() {
   // SUBMIT LEAVE
   const [loading, setLoading] = useState(false);
   const submitLeave = async () => {
+    console.log(form);
     if (!form.employee_id || !form.start_date || !form.end_date) {
       alert("Please fill all fields");
       return;
@@ -55,6 +56,35 @@ function App() {
       end_date: ""
     });
     setLoading(false);
+  };
+  const approveLeave = async (id) => {
+    const res = await fetch(`${API}/leave-requests/${id}/approve`, {
+      method: "PATCH"
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.error);
+      return;
+    }
+
+    await loadLeaves();
+  };
+
+  const rejectLeave = async (id) => {
+    const res = await fetch(`${API}/leave-requests/${id}/reject`, {
+      method: "PATCH"
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.error);
+      return;
+    }
+
+    await loadLeaves();
   };
 
 
@@ -84,6 +114,7 @@ function App() {
       <input
         type="number"
         placeholder="Employee ID"
+        value={form.employee_id}
         onChange={(e) =>
           setForm({ ...form, employee_id: e.target.value })
         }
@@ -91,6 +122,7 @@ function App() {
 
       <input
         type="date"
+        value={form.start_date}
         onChange={(e) =>
           setForm({ ...form, start_date: e.target.value })
         }
@@ -98,6 +130,7 @@ function App() {
 
       <input
         type="date"
+        value={form.end_date}
         onChange={(e) =>
           setForm({ ...form, end_date: e.target.value })
         }
@@ -109,15 +142,58 @@ function App() {
 
       <h2>Leave Requests</h2>
 
+      <ul style={{ listStyle: "none", padding: 0 }}>
+        {leaves.map((leave) => {
+          const employee = employees.find(
+            (emp) => emp.id === leave.employee_id
+          );
 
-      <ul>
-        {leaves.map(l => (
-          <li key={l.id}>
-            Employee ID({l.employee_id}) |
-            {l.start_date} → {l.end_date} |
-            <b>{l.status}</b>
-          </li>
-        ))}
+          return (
+            <li
+              key={leave.id}
+              style={{
+                border: "1px solid #ccc",
+                padding: "10px",
+                marginBottom: "10px",
+                borderRadius: "8px"
+              }}
+            >
+              <p>
+                <strong>Employee:</strong>{" "}
+                {employee ? employee.name : `Employee ${leave.employee_id}`}
+              </p>
+
+              <p>
+                <strong>Team:</strong>{" "}
+                {employee ? employee.team : "Unknown"}
+              </p>
+
+              <p>
+                <strong>Dates:</strong>{" "}
+                {leave.start_date} → {leave.end_date}
+              </p>
+
+              <p>
+                <strong>Status:</strong> {leave.status}
+              </p>
+
+              {leave.status === "pending" && (
+                <>
+                  <button
+                    onClick={() => approveLeave(leave.id)}
+                    style={{ marginRight: "10px" }}
+                  >
+                    Approve
+                  </button>
+
+                  <button onClick={() => rejectLeave(leave.id)}>
+                    Reject
+                  </button>
+                </>
+              )}
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
