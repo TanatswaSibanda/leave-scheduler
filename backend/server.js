@@ -3,6 +3,18 @@ const connectDB = require("./database/database");
 
 const app = express();
 app.use(express.json());
+function getDatesBetween(start, end) {
+    const dates = [];
+    const current = new Date(start);
+    const last = new Date(end);
+
+    while (current <= last) {
+        dates.push(current.toISOString().split("T")[0]);
+        current.setDate(current.getDate() + 1);
+    }
+
+    return dates;
+}
 
 // TEST ROUTE
 app.get("/", (req, res) => {
@@ -73,45 +85,65 @@ app.patch("/leave-requests/:id/approve", async (req, res) => {
             "SELECT * FROM leave_requests WHERE id = ?",
             [id]
         );
+
         if (!request) {
             await db.close();
-
             return res.status(404).json({
                 error: "Leave request not found."
             });
         }
-        const overlappingLeave = await db.get(
-            `SELECT *
-     FROM leave_requests
-     WHERE employee_id = ?
-     AND status = 'approved'
-     AND id != ?
-     AND start_date <= ?
-     AND end_date >= ?`,
-            [
-                request.employee_id,
-                request.id,
-                request.end_date,
-                request.start_date
-            ]
-        );
-        if (overlappingLeave) {
-            await db.close();
 
-            return res.status(400).json({
-                error: "Employee already has approved leave during this period."
-            });
+        const employee = await db.get(
+            "SELECT * FROM employees WHERE id = ?",
+            [request.employee_id]
+        );
+
+        const teamSize = await db.get(
+            `SELECT COUNT(*) AS total
+             FROM employees
+             WHERE team = ?`,
+            [employee.team]
+        );
+
+        const maxAllowed = Math.floor(teamSize.total * 0.3);
+
+        //  get all days in leave range
+        const dates = getDatesBetween(request.start_date, request.end_date);
+
+        // check EACH day
+        for (const date of dates) {
+            const result = await db.get(
+                `SELECT COUNT(*) AS total
+                 FROM leave_requests lr
+                 JOIN employees e ON lr.employee_id = e.id
+                 WHERE e.team = ?
+                 AND lr.status = 'approved'
+                 AND lr.start_date <= ?
+                 AND lr.end_date >= ?`,
+                [employee.team, date, date]
+            );
+
+            if (result.total >= maxAllowed) {
+                await db.close();
+
+                return res.status(400).json({
+                    error: `30% team leave limit reached on ${date}`
+                });
+            }
         }
+
+
         await db.run(
             `UPDATE leave_requests
-     SET status = 'approved'
-     WHERE id = ?`,
+             SET status = 'approved'
+             WHERE id = ?`,
             [id]
         );
 
         await db.close();
 
-        res.json({ message: "Leave approved " });
+        res.json({ message: "Leave approved 💛" });
+
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
