@@ -1,8 +1,13 @@
 const express = require("express");
+const cors = require("cors");
 const connectDB = require("./database/database");
 
+
+
 const app = express();
+
 app.use(express.json());
+app.use(cors());
 function getDatesBetween(start, end) {
     const dates = [];
     const current = new Date(start);
