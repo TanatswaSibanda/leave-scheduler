@@ -35,7 +35,7 @@ app.post("/leave-requests", async (req, res) => {
 
         await db.close();
 
-        res.json({ message: "Leave request submitted successfully 💛" });
+        res.json({ message: "Leave request submitted successfully " });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -52,6 +52,47 @@ app.get("/leave-requests", async (req, res) => {
         await db.close();
 
         res.json(requests);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.patch("/leave-requests/:id/approve", async (req, res) => {
+    try {
+        const db = await connectDB();
+
+        const { id } = req.params;
+
+        await db.run(
+            `UPDATE leave_requests
+             SET status = 'approved'
+             WHERE id = ?`,
+            [id]
+        );
+
+        await db.close();
+
+        res.json({ message: "Leave approved " });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+app.patch("/leave-requests/:id/reject", async (req, res) => {
+    try {
+        const db = await connectDB();
+
+        const { id } = req.params;
+
+        await db.run(
+            `UPDATE leave_requests
+             SET status = 'rejected'
+             WHERE id = ?`,
+            [id]
+        );
+
+        await db.close();
+
+        res.json({ message: "Leave rejected " });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

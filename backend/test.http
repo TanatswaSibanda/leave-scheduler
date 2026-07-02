@@ -1,3 +1,9 @@
+
+### 
+GET http://localhost:2000/employees
+
+###
+
 POST http://localhost:2000/leave-requests
 Content-Type: application/json
 
@@ -6,3 +12,10 @@ Content-Type: application/json
   "start_date": "2026-07-20",
   "end_date": "2026-07-22"
 }
+
+###
+
+PATCH http://localhost:2000/leave-requests/1/approve
+
+###
+PATCH http://localhost:2000/leave-requests/2/reject
