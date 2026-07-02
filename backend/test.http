@@ -2,6 +2,8 @@
 ### 
 GET http://localhost:2000/employees
 
+### 
+GET http://localhost:2000/leave-requests
 ###
 
 POST http://localhost:2000/leave-requests
@@ -15,7 +17,7 @@ Content-Type: application/json
 
 ###
 
-PATCH http://localhost:2000/leave-requests/1/approve
+PATCH http://localhost:2000/leave-requests/13/approve
 
 ###
 PATCH http://localhost:2000/leave-requests/2/reject

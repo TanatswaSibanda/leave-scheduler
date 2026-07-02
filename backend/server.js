@@ -28,9 +28,15 @@ app.post("/leave-requests", async (req, res) => {
         const db = await connectDB();
 
         await db.run(
-            `INSERT INTO leave_requests (employee_id, start_date, end_date, status)
-             VALUES (?, ?, ?, ?)`,
-            [employee_id, start_date, end_date, "pending"]
+            `INSERT INTO leave_requests
+    (employee_id, start_date, end_date, status)
+    VALUES (?, ?, ?, ?)`,
+            [
+                employee_id,
+                start_date,
+                end_date,
+                "pending"
+            ]
         );
 
         await db.close();
@@ -63,10 +69,43 @@ app.patch("/leave-requests/:id/approve", async (req, res) => {
 
         const { id } = req.params;
 
+        const request = await db.get(
+            "SELECT * FROM leave_requests WHERE id = ?",
+            [id]
+        );
+        if (!request) {
+            await db.close();
+
+            return res.status(404).json({
+                error: "Leave request not found."
+            });
+        }
+        const overlappingLeave = await db.get(
+            `SELECT *
+     FROM leave_requests
+     WHERE employee_id = ?
+     AND status = 'approved'
+     AND id != ?
+     AND start_date <= ?
+     AND end_date >= ?`,
+            [
+                request.employee_id,
+                request.id,
+                request.end_date,
+                request.start_date
+            ]
+        );
+        if (overlappingLeave) {
+            await db.close();
+
+            return res.status(400).json({
+                error: "Employee already has approved leave during this period."
+            });
+        }
         await db.run(
             `UPDATE leave_requests
-             SET status = 'approved'
-             WHERE id = ?`,
+     SET status = 'approved'
+     WHERE id = ?`,
             [id]
         );
 
