@@ -103,6 +103,30 @@ app.patch("/leave-requests/:id/approve", async (req, res) => {
             [request.employee_id]
         );
 
+        const overlappingLeave = await db.get(
+            `SELECT *
+     FROM leave_requests
+     WHERE employee_id = ?
+     AND status = 'approved'
+     AND id != ?
+     AND start_date <= ?
+     AND end_date >= ?`,
+            [
+                request.employee_id,
+                request.id,
+                request.end_date,
+                request.start_date
+            ]
+        );
+
+        if (overlappingLeave) {
+            await db.close();
+
+            return res.status(400).json({
+                error: "Employee already has approved leave during this period."
+            });
+        }
+
         const teamSize = await db.get(
             `SELECT COUNT(*) AS total
              FROM employees
@@ -147,7 +171,7 @@ app.patch("/leave-requests/:id/approve", async (req, res) => {
 
         await db.close();
 
-        res.json({ message: "Leave approved 💛" });
+        res.json({ message: "Leave approved " });
 
     } catch (error) {
         res.status(500).json({ error: error.message });
